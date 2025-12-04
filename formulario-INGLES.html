@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Cores do Bem</title>
+    <link rel="icon"  href="imagem/brnco.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/FORMULARIO.css">
+</head>
+<body class="imagem">
+
+
+    <div class="containeringles">
+    <header>
+        <h1 class="logo">COLORING</h1>
+
+        <nav>
+            <a href="index.html">HOME</a>
+            <a href="julho.html">JULY</a>
+            <a href="agosto.html">AUGUST</a>
+            <a href="setembro.html">SEPTEMBER</a>
+            <a href="FORMULARIO.html">CONTACT PAGE</a>
+            <a href="ODS-INGLES.html">SDG</a>
+        </nav>
+
+        <button class="btn-signing">
+            <a href="FORMULARIO.html">TRANSLATE TO PORTUGUESE</a>
+        </button>
+    </header>
+</div>
+
+</head>
+<body>
+
+<div class="container">
+    <h2>Contact Form and Preference Surveys</h2>
+
+    <form id="contactForm">
+        <h3>Contact Information</h3>
+        
+        <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required placeholder="Your full name">
+        </div>
+        <hr>
+
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required pattern="[a-z0-9._%+-]+@gmail\.com$" placeholder="your.email@gmail.com">
+        </div>
+        <hr>
+
+        <div class="form-group">
+            <label for="message">Message:</label>
+            <textarea id="message" name="message" required placeholder="Leave your message or feedback here."></textarea>
+        </div> 
+        <hr>
+        
+        <button type="submit" class="submit-contact-button">Send Message</button>
+    </form>
+    
+    <div class="poll-section">
+        <div class="poll-group" id="poll1">
+            <label>Which month would you most like to see on our website?</label>
+            <div class="poll-options">
+                <label><input type="radio" name="futureMonth" value="October"> October</label>
+                <label><input type="radio" name="futureMonth" value="November"> November</label>
+                <label><input type="radio" name="futureMonth" value="December"> December</label>
+            </div>
+            <button type="button" class="vote-button" data-poll="futureMonth">Vote</button>
+
+            <div class="results" id="resultsFutureMonth" style="display: none;">
+                <p>Total Votes: <span class="total-votes">0</span></p>
+                <div class="results-display"></div>
+            </div>
+        </div>
+
+        <div class="poll-group" id="poll2">
+            <label>Which month did you like the most?</label>
+            <div class="poll-options">
+                <label><input type="radio" name="pastMonth" value="July"> July</label>
+                <label><input type="radio" name="pastMonth" value="August"> August</label>
+                <label><input type="radio" name="pastMonth" value="September"> September</label>
+            </div>
+            <button type="button" class="vote-button" data-poll="pastMonth">Vote</button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- 1. CONFIGURAÇÃO DO FORMULÁRIO DE CONTATO E LOCALSTORAGE ---
+        const contactForm = document.getElementById('contactForm');
+        const nameInput = document.getElementById('name');
+        const emailInput = document.getElementById('email');
+        const messageInput = document.getElementById('message');
+
+        function loadFormState() {
+            nameInput.value = localStorage.getItem('contactName') || '';
+            emailInput.value = localStorage.getItem('contactEmail') || '';
+            messageInput.value = localStorage.getItem('contactMessage') || '';
+        }
+
+        function saveFormState() {
+            localStorage.setItem('contactName', nameInput.value);
+            localStorage.setItem('contactEmail', emailInput.value);
+            localStorage.setItem('contactMessage', messageInput.value);
+        }
+
+        [nameInput, emailInput, messageInput].forEach(input => {
+            input.addEventListener('input', saveFormState);
+        });
+
+        loadFormState();
+
+        contactForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            if (!emailInput.value.toLowerCase().endsWith('@gmail.com')) {
+                alert('Por favor, utilize um endereço de e-mail do Gmail válido.');
+                return;
+            }
+
+            alert('Formulário de Contato enviado!\n\nNome: ' + nameInput.value + '\nE-mail: ' + emailInput.value);
+            
+            // Limpa o rascunho salvo e os campos após o envio
+            localStorage.removeItem('contactName');
+            localStorage.removeItem('contactEmail');
+            localStorage.removeItem('contactMessage');
+            contactForm.reset();
+        });
+
+
+        // --- 2. CONFIGURAÇÃO DAS DUAS ENQUETES E LOCALSTORAGE ---
+        
+        // Estruturas de dados para as enquetes
+        const pollConfig = {
+            'futureMonth': {
+                key: 'pollFutureMonthResults',
+                votedKey: 'pollFutureMonthVoted',
+                initialData: { 'Outubro': 0, 'Novembro': 0, 'Dezembro': 0 },
+                button: document.querySelector('.vote-button[data-poll="futureMonth"]'),
+                resultsDiv: document.getElementById('resultsFutureMonth'),
+                inputs: document.querySelectorAll('input[name="futureMonth"]')
+            },
+            'pastMonth': {
+                key: 'pollPastMonthResults',
+                votedKey: 'pollPastMonthVoted',
+                initialData: { 'Julho': 0, 'Agosto': 0, 'Setembro': 0 },
+                button: document.querySelector('.vote-button[data-poll="pastMonth"]'),
+                resultsDiv: document.getElementById('resultsPastMonth'),
+                inputs: document.querySelectorAll('input[name="pastMonth"]')
+            }
+        };
+
+       
+
+        // Função para carregar os resultados de ambas as enquetes
+        function loadPollResults() {
+            for (const pollId in pollConfig) {
+                const config = pollConfig[pollId];
+                
+                // 1. Carrega dados e mescla com a estrutura inicial 
+                const savedResults = localStorage.getItem(config.key);
+                let pollData = config.initialData;
+                if (savedResults) {
+                    const loadedData = JSON.parse(savedResults);
+                    pollData = { ...config.initialData, ...loadedData };
+                }
+                config.data = pollData; 
+
+                // 2. Verifica se o usuário votou
+                const hasVoted = localStorage.getItem(config.votedKey);
+                
+                if (getTotalVotes(pollData) > 0 || hasVoted) {
+                    displayPollResults(config, pollData);
+                }
+
+                if (hasVoted) {
+                    config.inputs.forEach(input => input.disabled = true);
+                    config.button.textContent = 'Voto Registrado';
+                    config.button.disabled = true;
+                }
+            }
+        }
+
+        // Adiciona o listener para todos os botões de votação
+        document.querySelectorAll('.vote-button').forEach(button => {
+            button.addEventListener('click', (event) => {
+                const pollId = event.target.getAttribute('data-poll');
+                const config = pollConfig[pollId];
+
+                if (localStorage.getItem(config.votedKey)) {
+                    alert('Você já votou nesta enquete. Seu voto já foi registrado.');
+                    return;
+                }
+
+                const selectedOption = document.querySelector(`input[name="${pollId}"]:checked`);
+                
+                if (selectedOption) {
+                    const option = selectedOption.value;
+                    
+                    // 1. Atualiza os dados de voto
+                    config.data[option] = (config.data[option] || 0) + 1;
+                    
+                    // 2. Salva os dados atualizados no LocalStorage
+                    localStorage.setItem(config.key, JSON.stringify(config.data));
+                    
+                    // 3. Marca que o usuário votou
+                    localStorage.setItem(config.votedKey, 'true');
+                    
+                    // 4. Exibe os resultados e desabilita
+                    displayPollResults(config, config.data);
+                    
+                    config.inputs.forEach(input => input.disabled = true);
+                    config.button.textContent = 'Voto Registrado';
+                    config.button.disabled = true;
+                    
+                    alert(`Obrigado! Seu voto para ${option} foi registrado.`);
+                } else {
+                    alert('Por favor, selecione uma opção para votar.');
+                }
+            });
+        });
+
+        // Inicia o carregamento
+        loadPollResults();
+    });
+</script>
+<div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper>
+      <div class="vw-plugin-top-wrapper"></div>
+    </div>
+  </div>
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+  <script>
+    new window.VLibras.Widget('https://vlibras.gov.br/app');
+  </script>
+
+</body>
+</html>
